@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h1>Home Page</h1>
+    <v-subheader>Dashboard</v-subheader>
   </div>
 </template>
 
