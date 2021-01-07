@@ -51,7 +51,7 @@
             </v-list-item-content>
           </v-list-item>
 
-          <v-list-item router to="/about">
+          <v-list-item router to="/unedited-clip">
             <v-list-item-icon>
               <v-icon>mdi-filmstrip</v-icon>
             </v-list-item-icon>
