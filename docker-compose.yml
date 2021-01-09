@@ -1,0 +1,25 @@
+version: '3.7'
+
+services:
+  minio:
+    image: minio/minio
+    volumes:
+      - minio:/data
+    expose:
+      - "9000"
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+
+  nginx:
+    image: nginx:1.19.2-alpine
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "9000:9000"
+    depends_on:
+      - minio
+
+volumes:
+  minio:
