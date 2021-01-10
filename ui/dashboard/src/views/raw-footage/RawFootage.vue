@@ -9,7 +9,7 @@
         <v-toolbar
             flat
         >
-          <v-toolbar-title>Unedited Clips</v-toolbar-title>
+          <v-toolbar-title>Raw Footage</v-toolbar-title>
           <v-divider
               class="mx-4"
               inset
