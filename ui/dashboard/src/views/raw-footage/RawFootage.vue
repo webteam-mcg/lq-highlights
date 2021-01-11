@@ -1,8 +1,7 @@
 <template>
     <v-data-table
         :headers="headers"
-        :items="desserts"
-        sort-by="calories"
+        :items="footage"
         class="elevation-1"
     >
       <template v-slot:top>
@@ -20,17 +19,6 @@
               v-model="dialog"
               max-width="500px"
           >
-            <template v-slot:activator="{ on, attrs }">
-              <v-btn
-                  color="primary"
-                  dark
-                  class="mb-2"
-                  v-bind="attrs"
-                  v-on="on"
-              >
-                New Item
-              </v-btn>
-            </template>
             <v-card>
               <v-card-title>
                 <span class="headline">{{ formTitle }}</span>
@@ -123,9 +111,33 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+          <v-dialog v-model="dialogPlay" max-width="1000px" :key="editedRow.key">
+            <v-card>
+              <vue-plyr>
+                <video
+                    controls
+                    crossorigin
+                    playsinline
+                >
+                  <source
+                      size="1080"
+                      :src="editedRow.url"
+                      type="video/mp4"
+                  />
+                </video>
+              </vue-plyr>
+            </v-card>
+          </v-dialog>
         </v-toolbar>
       </template>
       <template v-slot:item.actions="{ item }">
+        <v-icon
+            medium
+            class="mr-2"
+            @click="playItem(item)"
+        >
+          mdi-play
+        </v-icon>
         <v-icon
             small
             class="mr-2"
@@ -152,39 +164,36 @@
 </template>
 
 <script>
+import axios from "axios";
+
 export default {
-  name: "UneditedClip",
+  name: "RawFootage",
   data: () => ({
     dialog: false,
+    dialogPlay: false,
     dialogDelete: false,
     headers: [
       {
-        text: 'Dessert (100g serving)',
+        text: 'Footage',
         align: 'start',
         sortable: false,
-        value: 'name',
+        value: 'key',
       },
-      { text: 'Calories', value: 'calories' },
-      { text: 'Fat (g)', value: 'fat' },
-      { text: 'Carbs (g)', value: 'carbs' },
-      { text: 'Protein (g)', value: 'protein' },
       { text: 'Actions', value: 'actions', sortable: false },
     ],
-    desserts: [],
+    footage: [],
     editedIndex: -1,
+    editedRow: {
+      key: '',
+      url: ''
+    },
     editedItem: {
-      name: '',
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
+      key: '',
+      url: ''
     },
     defaultItem: {
-      name: '',
-      calories: 0,
-      fat: 0,
-      carbs: 0,
-      protein: 0,
+      key: '',
+      url: ''
     },
   }),
 
@@ -201,6 +210,9 @@ export default {
     dialogDelete (val) {
       val || this.closeDelete()
     },
+    dialogPlay (val) {
+      val || this.closePlay()
+    }
   },
 
   created () {
@@ -209,94 +221,42 @@ export default {
 
   methods: {
     initialize () {
-      this.desserts = [
-        {
-          name: 'Frozen Yogurt',
-          calories: 159,
-          fat: 6.0,
-          carbs: 24,
-          protein: 4.0,
-        },
-        {
-          name: 'Ice cream sandwich',
-          calories: 237,
-          fat: 9.0,
-          carbs: 37,
-          protein: 4.3,
-        },
-        {
-          name: 'Eclair',
-          calories: 262,
-          fat: 16.0,
-          carbs: 23,
-          protein: 6.0,
-        },
-        {
-          name: 'Cupcake',
-          calories: 305,
-          fat: 3.7,
-          carbs: 67,
-          protein: 4.3,
-        },
-        {
-          name: 'Gingerbread',
-          calories: 356,
-          fat: 16.0,
-          carbs: 49,
-          protein: 3.9,
-        },
-        {
-          name: 'Jelly bean',
-          calories: 375,
-          fat: 0.0,
-          carbs: 94,
-          protein: 0.0,
-        },
-        {
-          name: 'Lollipop',
-          calories: 392,
-          fat: 0.2,
-          carbs: 98,
-          protein: 0,
-        },
-        {
-          name: 'Honeycomb',
-          calories: 408,
-          fat: 3.2,
-          carbs: 87,
-          protein: 6.5,
-        },
-        {
-          name: 'Donut',
-          calories: 452,
-          fat: 25.0,
-          carbs: 51,
-          protein: 4.9,
-        },
-        {
-          name: 'KitKat',
-          calories: 518,
-          fat: 26.0,
-          carbs: 65,
-          protein: 7,
-        },
-      ]
+      axios({
+        method: "get",
+        url: "http://127.0.0.1:5000/api/v1/raw/all"
+      })
+          .then(response => (this.footage = response.data.footage))
     },
 
     editItem (item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedIndex = this.footage.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialog = true
     },
 
     deleteItem (item) {
-      this.editedIndex = this.desserts.indexOf(item)
+      this.editedRow = item
+      this.editedIndex = this.footage.indexOf(item)
       this.editedItem = Object.assign({}, item)
       this.dialogDelete = true
     },
 
+    playItem (item) {
+      console.log("Play Item", item)
+      this.editedRow = item
+      this.editedIndex = this.footage.indexOf(item)
+      this.editedItem = Object.assign({}, item)
+      this.dialogPlay = true
+    },
+
     deleteItemConfirm () {
-      this.desserts.splice(this.editedIndex, 1)
+      axios({
+        method: "delete",
+        url: `http://127.0.0.1:5000/api/v1/raw/${this.editedRow.key}`
+      })
+      .then(() => (
+          this.footage.splice(this.editedIndex, 1)
+      ))
       this.closeDelete()
     },
 
@@ -311,16 +271,28 @@ export default {
     closeDelete () {
       this.dialogDelete = false
       this.$nextTick(() => {
+        this.editedRow = Object.assign({}, this.defaultItem)
         this.editedItem = Object.assign({}, this.defaultItem)
         this.editedIndex = -1
       })
     },
 
+    closePlay () {
+      console.log("Before Close", this.editedRow)
+      this.dialogPlay = false
+      this.$nextTick(() => {
+        this.editedRow = Object.assign({}, this.defaultItem)
+        this.editedItem = Object.assign({}, this.defaultItem)
+        this.editedIndex = -1
+        console.log("After Close", this.editedRow)
+      })
+    },
+
     save () {
       if (this.editedIndex > -1) {
-        Object.assign(this.desserts[this.editedIndex], this.editedItem)
+        Object.assign(this.footage[this.editedIndex], this.editedItem)
       } else {
-        this.desserts.push(this.editedItem)
+        this.footage.push(this.editedItem)
       }
       this.close()
     },

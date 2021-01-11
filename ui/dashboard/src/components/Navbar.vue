@@ -51,13 +51,13 @@
             </v-list-item-content>
           </v-list-item>
 
-          <v-list-item router to="/unedited-clip">
+          <v-list-item router to="/raw">
             <v-list-item-icon>
               <v-icon>mdi-filmstrip</v-icon>
             </v-list-item-icon>
 
             <v-list-item-content>
-              <v-list-item-title>Unedited Clips</v-list-item-title>
+              <v-list-item-title>Raw Footage</v-list-item-title>
             </v-list-item-content>
           </v-list-item>
 
